@@ -54,7 +54,10 @@ class CommandUart:
                 check_sum += ord(got_char)
                 data = data + got_char
                 counter += 1
-        
+            
+            if len(data) != self.DATA_SIZE:
+                return -1, 0
+
             id = ord(data[0])
             msg_id = ord(data[1])
             check_sum = (check_sum - ord(data[-2])) & 0xFF
@@ -73,7 +76,7 @@ class CommandUart:
         else:
             return -1, 0
 
-dev = serial.Serial('/dev/ttyS3', 115200, timeout=1.0)
+dev = serial.Serial('/dev/ttyS3', 9600, timeout=1.0)
 cuart = CommandUart(dev)
 
 def got_request_cb(message):
