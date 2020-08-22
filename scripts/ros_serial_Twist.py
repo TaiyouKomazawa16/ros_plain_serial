@@ -1,5 +1,12 @@
 #! /usr/bin/env python
 #encoding=utf-8
+#
+# File:     ros_serial_Twist.py
+# 
+# This file is distributed under the MIT license. See "LICENSE" for text.
+# 
+# Author:   TaiyouKomazawa
+#
 
 import sys,math
 import rospy

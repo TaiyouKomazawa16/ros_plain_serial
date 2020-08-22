@@ -1,3 +1,11 @@
+/*
+ * File:    PlainSerial.h
+ * 
+ * This file is distributed under the MIT license. See "LICENSE" for text.
+ * 
+ * Author:  TaiyouKomazawa
+ */
+
 #ifndef PLAIN_SERIAL_H_
 #define PLAIN_SERIAL_H_
 
