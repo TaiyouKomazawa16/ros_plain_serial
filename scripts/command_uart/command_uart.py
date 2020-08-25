@@ -19,7 +19,6 @@ class CommandUart:
     #メッセージの型識別
     INT32       =chr(0)  
     FLOAT32     =chr(1)
-    BOOL        =chr(2)
 
     #制御用のcharacter
     HEADER      =':'

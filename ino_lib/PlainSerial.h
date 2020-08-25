@@ -38,7 +38,6 @@ protected:
     typedef enum MessageType{
         INT32 =0,
         FLOAT32,
-        BOOL,
     }message_t;
 
     inline void _write(int8_t id, message_t msg_id, uint8_t *c, int len);
