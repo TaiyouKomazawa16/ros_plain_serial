@@ -97,7 +97,7 @@ def got_request_cb(message):
 if __name__ == '__main__':
     rospy.init_node('plain_serial_Twist')
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
-    pub = rospy.Publisher('/plain_serial/odom_vel', Twist, queue_size=1)
+    pub = rospy.Publisher('/plain_serial/odometry', Twist, queue_size=1)
 
     res = Twist()
     while not rospy.is_shutdown():
