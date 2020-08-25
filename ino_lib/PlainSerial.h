@@ -9,7 +9,7 @@
 #ifndef PLAIN_SERIAL_H_
 #define PLAIN_SERIAL_H_
 
-#define BUFFER_LEN 9
+#define BUFFER_LEN 8
 
 #include <Arduino.h>
 
@@ -108,39 +108,36 @@ inline void PlainSerial::_write(int8_t id, PlainSerial::message_t msg_id, uint8_
 }
 
 int PlainSerial::_read(PlainSerial::buffer_t *buff){
-    if(_dev->available() >= BUFFER_LEN){
-        bool got_frame = false;
+    if(_dev->available() > BUFFER_LEN){
         uint8_t check_sum = 0;
-        int data_sum = 0;
-        while(1){
+        int data_sum = (int)HEADER;
+
+        buff->str[0] = _dev->read();
+        if(buff->str[0] != HEADER){
+            buff->len = 0;
+            return -1;
+        }
+        
+        for(buff->len = 1; buff->len <= BUFFER_LEN; buff->len++){
             uint8_t data = _dev->read();
+            buff->str[buff->len] = data;
             data_sum += data;
-            if(buff->len >= BUFFER_LEN){
-                buff->len = 0;
-                got_frame = false;
-                return -1;
-            }
-            switch(data){
-                case HEADER:
-                    got_frame = true;
-                break;
-                case END:
-                    check_sum = buff->str[buff->len-1];
-                    data_sum -= check_sum;
-                    if((data_sum & 0xFF) == check_sum){
-                        buff->str[buff->len] = END;
-                        buff->len++;
-                        return 0;
-                    }else{
-                        buff->len = 0;
-                        return -1;
-                    }
-                break;
-                default:
-                    buff->str[buff->len] = data;
-                    buff->len++;
-                break;
-            };
+        }
+
+
+        if(buff->str[buff->len-1] != END){
+            buff->len = 0;
+            return -1;
+        }
+        
+        check_sum = buff->str[buff->len-2];
+        data_sum -= check_sum;
+        if((data_sum & 0xFF) == check_sum){
+            buff->str[buff->len-1] = 0;
+            return 0;
+        }else{
+            buff->len = 0;
+            return -1;
         }
     }
     return -1;

@@ -51,14 +51,13 @@ class CommandUart:
             data=""
             check_sum = ord(self.HEADER)
             counter = 1
-            while got_char != self.END:
-                if self.DATA_SIZE < counter : return -1, 0
+            while self.DATA_SIZE >= counter:
                 got_char = self.uart.read()
                 check_sum += ord(got_char)
                 data = data + got_char
                 counter += 1
             
-            if len(data) != self.DATA_SIZE:
+            if data[-1] != self.END:
                 return -1, 0
 
             id = ord(data[0])
