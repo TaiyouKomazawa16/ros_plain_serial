@@ -17,6 +17,9 @@ import time
 
 from geometry_msgs.msg import Twist
 
+rospy.init_node('plain_serial_Twist')
+#接続先
+port = rospy.get_param('~port')
 class CommandUart:
     DATA_SIZE =8
 
@@ -82,8 +85,7 @@ class CommandUart:
                 return -1, 0
         else:
             return -1, 0
-
-dev = serial.Serial('/dev/ttyS3', 9600, timeout=1.0)
+dev = serial.Serial(port, 9600, timeout=1.0)
 cuart = CommandUart(dev)
 
 def got_request_cb(message):
@@ -94,8 +96,7 @@ def got_request_cb(message):
     cuart.send(3, message.angular.z)
     time.sleep(0.005) #wait 5ms
 
-if __name__ == '__main__':
-    rospy.init_node('plain_serial_Twist')
+def main():
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
     pub = rospy.Publisher('/plain_serial/odometry', Twist, queue_size=1)
 
@@ -113,3 +114,6 @@ if __name__ == '__main__':
             pub.publish(res)
         else:
             pass
+        
+if __name__ == '__main__':
+    main()
