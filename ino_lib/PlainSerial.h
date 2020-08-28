@@ -147,9 +147,9 @@ double PlainSerial::_decode(PlainSerial::buffer_t *buff, int *id){
         *id = -1;
         return 0;
     }
-    *id = buff->str[0];
-    uint8_t *c = &(buff->str[2]);
-    switch(buff->str[1]){
+    *id = buff->str[1];
+    uint8_t *c = &(buff->str[3]);
+    switch(buff->str[2]){
         case INT32:
             union{
                 uint8_t c[4];
