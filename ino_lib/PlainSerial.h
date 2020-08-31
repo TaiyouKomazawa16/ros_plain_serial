@@ -11,7 +11,12 @@
 
 #define BUFFER_LEN 8
 
+#define FRAME_LEN 4
+
 #include <Arduino.h>
+
+#include "Structure.h"
+#include "MessageID.h"
 
 class PlainSerial
 {
@@ -20,155 +25,83 @@ public:
     {
         _dev = dev;
     }
+    
+    int read(int target_id, StructMem *str)
+    {
+        int size = FRAME_LEN+str->size();
+        if(_dev->available() > size){
+            uint8_t check_sum = 0;
+            int data_sum = 0;
 
-    double read(int *id);
-    void write_32bit(int8_t id, int32_t val);
-    void write_float(int8_t id, double val);
+            if (_read_once(&data_sum) != HEADER){
+                return -2;
+            }
+            if (_read_once(&data_sum) != target_id){
+                return -3;
+            }
+            if (_read_once(&data_sum) != str->msg_id()){
+                return -4;
+            }
+
+            for(int i = 0; i < str->size(); i++){
+                uint8_t c;
+                str->ptr()[i] = _read_once(&data_sum);
+            }
+
+            check_sum = _dev->read();
+
+            if (_read_once(&data_sum) != END){
+                return -5;
+            }
+
+            if((data_sum & 0xFF) == check_sum){
+                return 0;
+            }
+            else{
+                return -6;
+            }
+        }
+        return -1;
+    }
+
+    void write(int id, StructMem *str)
+    {
+        int data_sum = 0;
+        _write_once(HEADER, &data_sum);
+        _write_once(id, &data_sum);
+        _write_once(str->msg_id(), &data_sum);
+        for (int i = 0; i < str->size(); i++)
+        {
+            _write_once(str->ptr()[i], &data_sum);
+        }
+        data_sum += END;
+        _dev->write((uint8_t)(data_sum & 0xFF)); //下位ビット8bitを送信
+        _dev->write(END);
+        _dev->flush();
+    }
+
 protected:
-    typedef struct BufferType{
-        uint8_t str[10] ={};
-        int len = 0;
-    }buffer_t;
 
     typedef enum ControlCharType{
         HEADER=':',
         END='\n',
     }ctrl_char_t;
-
-    typedef enum MessageType{
-        INT32 =0,
-        FLOAT32,
-    }message_t;
-
-    inline void _write(int8_t id, message_t msg_id, uint8_t *c, int len);
-    int _read(buffer_t *buff);
-    double _decode(buffer_t *buff, int *id);
+    
 private:
     HardwareSerial *_dev;
-    inline void _write_once(uint8_t c, int *data_sum);
+    inline void _write_once(uint8_t c, int *data_sum)
+    {
+        _dev->write(c);
+        *data_sum += c;
+    }
+
+    inline uint8_t _read_once(int *data_sum)
+    {
+        uint8_t c = _dev->read();
+        *data_sum += c;
+        return c;
+    }
 };
 
-
-double PlainSerial::read(int *id)
-{
-    buffer_t buffer;
-    if(!_read(&buffer)){
-        double result = _decode(&buffer, id);
-        return result;
-    }
-    else{
-        *id = -1;
-        return 0;
-    }
-}
-
-void PlainSerial::write_32bit(int8_t id, int32_t val)
-{
-    union{
-        uint8_t c[4];
-        int32_t i;
-    } i_to_c;
-    i_to_c.i = val;
-
-    _write(id, INT32, i_to_c.c, 4);
-}  
-
-
-void PlainSerial::write_float(int8_t id, double val)
-{
-    union{
-        uint8_t c[4];
-        double f;
-    } f_to_c;
-    f_to_c.f = val;
-
-    _write(id, FLOAT32, f_to_c.c, 4);
-}
-
-inline void PlainSerial::_write_once(uint8_t c, int *data_sum)
-{
-    _dev->write(c);
-    *data_sum += c;
-}
-
-inline void PlainSerial::_write(int8_t id, PlainSerial::message_t msg_id, uint8_t *c, int len)
-{
-    int data_sum = 0;
-    _write_once(HEADER, &data_sum);
-    _write_once(id, &data_sum);
-    _write_once(msg_id, &data_sum);
-    for (int i = 0; i < len; i++) {
-        _write_once(c[i], &data_sum);
-    }
-    data_sum += END;
-    _dev->write((uint8_t)(data_sum & 0xFF)); //下位ビット8bitを送信
-    _dev->write(END);
-    _dev->flush();
-}
-
-int PlainSerial::_read(PlainSerial::buffer_t *buff){
-    if(_dev->available() > BUFFER_LEN){
-        uint8_t check_sum = 0;
-        int data_sum = (int)HEADER;
-
-        buff->str[0] = _dev->read();
-        if(buff->str[0] != HEADER){
-            buff->len = 0;
-            return -1;
-        }
-        
-        for(buff->len = 1; buff->len <= BUFFER_LEN; buff->len++){
-            uint8_t data = _dev->read();
-            buff->str[buff->len] = data;
-            data_sum += data;
-        }
-
-
-        if(buff->str[buff->len-1] != END){
-            buff->len = 0;
-            return -1;
-        }
-        
-        check_sum = buff->str[buff->len-2];
-        data_sum -= check_sum;
-        if((data_sum & 0xFF) == check_sum){
-            buff->str[buff->len-1] = 0;
-            return 0;
-        }else{
-            buff->len = 0;
-            return -1;
-        }
-    }
-    return -1;
-}
-
-double PlainSerial::_decode(PlainSerial::buffer_t *buff, int *id){
-    if(buff->len == 0){
-        *id = -1;
-        return 0;
-    }
-    *id = buff->str[1];
-    uint8_t *c = &(buff->str[3]);
-    switch(buff->str[2]){
-        case INT32:
-            union{
-                uint8_t c[4];
-                int32_t i;
-            } i_to_c;
-            for(int i = 0; i < 4; i++)
-                i_to_c.c[i] = c[i];
-            return (double)i_to_c.i;
-        break;
-        case FLOAT32:
-            union{
-                uint8_t c[4];
-                double f;
-             } f_to_c;
-             for(int i = 0; i < 4; i++)
-                f_to_c.c[i] = c[i];
-             return f_to_c.f;
-        break;
-    };
-}
 
 #endif

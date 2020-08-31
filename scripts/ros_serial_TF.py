@@ -16,7 +16,7 @@ import time
 
 import tf
 
-from command_uart import CommandUart
+import plain_serial as ps
 
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
@@ -26,7 +26,7 @@ rospy.init_node('plain_serial_TF')
 port = rospy.get_param('~port')
 
 dev = serial.Serial(port, 9600, timeout=1.0)
-cuart = CommandUart(dev)
+cuart = ps.PlainSerial(dev)
 
 
 class CalcOdometry():
@@ -80,26 +80,20 @@ def main():
     codom = CalcOdometry()
 
     while not rospy.is_shutdown():
-        result = cuart.recv()
-        if result[0] == 1:
-            res.linear.x = result[1]
-        elif result[0] == 2:
-            res.linear.y = result[1]
-        elif result[0] == 3:
-            res.angular.z = result[1]
-        else:
-            pass
+        result = cuart.recv(ps.PlaneTwist())
+        if result[0] >= 0:
+            res.linear.x = result[1][0]
+            res.linear.y = result[1][1]
+            res.angular.z = result[1][2]
 
-        pub.publish(codom.calc_tf(res))
+            pub.publish(codom.calc_tf(res))
         rate.sleep()
 
 def got_request_cb(message):
-    cuart.send(1, message.linear.x)
-    time.sleep(0.005) #wait 5ms
-    cuart.send(2, message.linear.y)
-    time.sleep(0.005) #wait 5ms
-    cuart.send(3, message.angular.z)
-    time.sleep(0.005) #wait 5ms
+    x = message.linear.x
+    y = message.linear.y
+    thr = message.angular.z
+    cuart.send(1, ps.PlaneTwist(x,y,thr))
 
 if __name__ == '__main__':
     main()
