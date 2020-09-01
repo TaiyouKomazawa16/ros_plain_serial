@@ -75,7 +75,7 @@ def main():
     pub = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
 
     res = Twist()
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(50)   #50hz
 
     codom = CalcOdometry()
 
