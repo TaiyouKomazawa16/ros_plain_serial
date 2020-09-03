@@ -42,7 +42,7 @@ class CalcOdometry():
         diff.linear.x = (twist.linear.x - self.l_p.linear.x) / dt
         diff.linear.y = (twist.linear.y - self.l_p.linear.y) / dt
         diff.angular.z = (twist.angular.z - self.l_p.angular.z) / dt
-        l_p = twist
+        self.l_p = twist
 
         return diff
 
