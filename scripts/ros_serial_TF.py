@@ -78,10 +78,11 @@ def main():
     rate = rospy.Rate(50)   #50hz
 
     codom = CalcOdometry()
+    cuart.add_frame(ps.PlaneTwist())
 
     while not rospy.is_shutdown():
-        result = cuart.recv(ps.PlaneTwist())
-        if result[0] >= 0:
+        result = cuart.recv()
+        if result[0] == 0:
             res.linear.x = result[1][0]
             res.linear.y = result[1][1]
             res.angular.z = result[1][2]
@@ -93,7 +94,7 @@ def got_request_cb(message):
     x = message.linear.x
     y = message.linear.y
     thr = message.angular.z
-    cuart.send(1, ps.PlaneTwist(x,y,thr))
+    cuart.send(0, ps.PlaneTwist(x,y,thr))
 
 if __name__ == '__main__':
     main()

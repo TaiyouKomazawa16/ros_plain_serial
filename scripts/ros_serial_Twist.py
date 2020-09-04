@@ -29,16 +29,18 @@ def got_request_cb(message):
     x = message.linear.x
     y = message.linear.y
     thr = message.angular.z
-    cuart.send(1, ps.PlaneTwist(x,y,thr))
+    cuart.send(0, ps.PlaneTwist(x,y,thr))
 
 def main():
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
     pub = rospy.Publisher('/plain_serial/odometry', Twist, queue_size=1)
 
+    cuart.add_frame(ps.PlaneTwist())
+
     res = Twist()
     while not rospy.is_shutdown():
-        result = cuart.recv(ps.PlaneTwist())
-        if result[0] >= 0:
+        result = cuart.recv()
+        if result[0] == 0:
             res.linear.x = result[1][0]
             res.linear.y = result[1][1]
             res.angular.z = result[1][2]

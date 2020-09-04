@@ -8,11 +8,17 @@ import time
 from .msg.msg_base import StructMem
 
 class PlainSerial:
-    FRAME_LEN = 4
+    HEDER_LEN = 2
+    FOOTER_LEN = 2
+
+    STRUCT_MAX_NUM  = 5
 
     #制御用のcharacter
     HEADER      =':'
     END         ='\n'
+
+    #StructMem objects
+    _strs = []
 
     def __init__(self, dev):
         self.uart = dev
@@ -26,6 +32,11 @@ class PlainSerial:
         result = self.uart.read(size)
         return sum(ord(i) for i in result), result
 
+    def add_frame(self, message):
+        if issubclass(type(message), StructMem) == False:
+            return #error!
+        self._strs.append(message)
+
     def send(self, id, message):
         if issubclass(type(message), StructMem) == False:
             return #error!
@@ -38,29 +49,30 @@ class PlainSerial:
         data_sum += ord(self.END)
         self._write(chr(data_sum & 0xFF)+self.END)
 
-    def recv(self, message):
-        if issubclass(type(message), StructMem) == False:
-            return #error!
-
+    def recv(self):
         [check_sum, got_char] = self._read()
         if got_char == self.HEADER:
-            tmp = self._read(message.size()+self.FRAME_LEN)
+            tmp = self._read(self.HEDER_LEN)
+            id = ord(tmp[1][0])
+            msg_id = ord(tmp[1][1])
             check_sum += tmp[0]
+            if(msg_id != self._strs[id].msg_id()):
+                return -1, 0
+            
+            tmp = self._read(self._strs[id].size())
             data = tmp[1]
-            if data[-1] != self.END:
+            check_sum += tmp[0]
+            tmp = self._read(self.FOOTER_LEN)
+            data_sum = ord(tmp[1][0])
+            frame_end = tmp[1][1]
+            check_sum += tmp[0]
+            if frame_end != self.END:
                 return -1, 0
 
-            id = ord(data[0])
-            msg_id = ord(data[1])
-            check_sum = (check_sum - ord(data[-2])) & 0xFF
-            data_sum = ord(data[-2])
-            data = data[2:-2]
+            check_sum = (check_sum - data_sum) & 0xFF
 
             if (check_sum - data_sum) == 0:
-                if msg_id == message.msg_id():
-                    return id, message.read_bytes(data)
-                else:
-                    return -1, 0
+                return id, self._strs[id].read_bytes(data)
             else:
                 return -1, 0
         else:

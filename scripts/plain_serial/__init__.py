@@ -7,3 +7,4 @@ from .plain_serial_core import *
 from .msg.msg_base import *
 from .msg.plane_twist import *
 from .msg.type32 import *
+from .msg.bools import *
