@@ -44,7 +44,8 @@ def got_command_cb(srv_req):
     rospy.loginfo("Get command.")
     cmds.set(srv_req.cmd, srv_req.bit)
     mutex.acquire(1)
-    cuart.send(1, cmds)
+    for i in range(srv_req.retries):
+        cuart.send(1, cmds)
     mutex.release()
 
     return True

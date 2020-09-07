@@ -1,6 +1,14 @@
+#INPUT
+#bit    : Specify the bit to reference.(0~7)
+#cmd    : Specify the value to be rewritten.(T/F)
+#retries: Specify the number of transmissions(about 3~4)
+
 int8 bit
 bool cmd
+uint8 retries
 
 ---
+
+#OUTPUT
 
 bool success

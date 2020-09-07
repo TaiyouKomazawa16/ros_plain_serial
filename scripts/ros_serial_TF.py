@@ -10,6 +10,7 @@
 
 import sys,math
 import rospy
+from threading import Lock
 
 import serial
 import time
@@ -17,6 +18,8 @@ import time
 import tf
 
 import plain_serial as ps
+
+from ros_plain_serial.srv import BoolCommand
 
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
@@ -28,7 +31,9 @@ port = rospy.get_param('~port')
 dev = serial.Serial(port, 9600, timeout=1.0)
 cuart = ps.PlainSerial(dev)
 
+cmds = ps.Bools()
 
+mutex = Lock()
 class CalcOdometry():
 
     def __init__(self):
@@ -71,6 +76,7 @@ class CalcOdometry():
 
 
 def main():
+    srv = rospy.Service('/plain_serial/sys_cmd', BoolCommand, got_command_cb)
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
     pub = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
 
@@ -79,6 +85,11 @@ def main():
 
     codom = CalcOdometry()
     cuart.add_frame(ps.PlaneTwist())
+    cuart.add_frame(cmds)
+
+    res = Twist()
+
+    rospy.loginfo("Ready..")
 
     while not rospy.is_shutdown():
         result = cuart.recv()
@@ -94,7 +105,19 @@ def got_request_cb(message):
     x = message.linear.x
     y = message.linear.y
     thr = message.angular.z
+    mutex.acquire(1)
     cuart.send(0, ps.PlaneTwist(x,y,thr))
+    mutex.release()
+
+def got_command_cb(srv_req):
+    rospy.loginfo("Get command.")
+    cmds.set(srv_req.cmd, srv_req.bit)
+    mutex.acquire(1)
+    for i in range(srv_req.retries):
+        cuart.send(1, cmds)
+    mutex.release()
+
+    return True
 
 if __name__ == '__main__':
     main()
