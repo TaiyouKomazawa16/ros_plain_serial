@@ -34,12 +34,14 @@ class PlainSerial:
 
     def add_frame(self, message):
         if issubclass(type(message), StructMem) == False:
-            return #error!
+            return None #error!
+        if len(self._strs) >= self.STRUCT_MAX_NUM:
+            return None #error!
         self._strs.append(message)
 
     def send(self, id, message):
         if issubclass(type(message), StructMem) == False:
-            return #error!
+            return None #error!
 
         data_sum = 0
         data_sum += self._write(self.HEADER)
