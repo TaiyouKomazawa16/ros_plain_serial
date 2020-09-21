@@ -1,5 +1,12 @@
-#!/usr/bin/env python
-#coding=utf-8
+#! /usr/bin/env python
+#encoding=utf-8
+#
+# File:     plain_serial_core.py
+# 
+# This file is distributed under the MIT license. See "LICENSE" for text.
+# 
+# Author:   TaiyouKomazawa
+#
 
 import sys
 import serial

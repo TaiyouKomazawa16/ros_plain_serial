@@ -1,5 +1,12 @@
-#!/usr/bin/env python
-#coding=utf-8
+#! /usr/bin/env python
+#encoding=utf-8
+#
+# File:     type32.py
+# 
+# This file is distributed under the MIT license. See "LICENSE" for text.
+# 
+# Author:   TaiyouKomazawa
+#
 
 import struct
 
