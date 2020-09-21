@@ -15,7 +15,8 @@ from threading import Lock
 import serial
 import time
 
-import tf
+import tf_conversions
+import tf2_ros
 
 import plain_serial as ps
 
@@ -24,7 +25,7 @@ from ros_plain_serial.srv import BoolCommand
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
 
-rospy.init_node('plain_serial_TF')
+rospy.init_node('plain_serial_TF2')
 #接続先
 port = rospy.get_param('~port')
 
@@ -39,7 +40,7 @@ class CalcOdometry():
     def __init__(self):
         self.l_t = rospy.Time.now()
         self.l_p = Twist()
-        self.tf_bc_odom = tf.TransformBroadcaster()
+        self.tf_bc_odom = tf2_ros.TransformBroadcaster()
 
     def _get_vel(self, twist, c_t):
         dt = self.c_t.to_sec() - self.l_t.to_sec()
@@ -53,10 +54,24 @@ class CalcOdometry():
 
     def calc_tf(self, twist):
         self.c_t = rospy.Time.now()
-        q = tf.transformations.quaternion_from_euler(0,0, twist.angular.z)
-        self.tf_bc_odom.sendTransform((twist.linear.x,twist.linear.y,0.0),q,self.c_t,"base_link","odom")
-
+        q = tf_conversions.transformations.quaternion_from_euler(0,0, twist.angular.z)
+        t = TransformStamped()
         odom = Odometry()
+
+        #tf2タグ
+        t.header.stamp = self.c_t
+        t.header.frame_id =     "ps_odom"
+        t.child_frame_id =      "base_link"
+        #現在のオドメトリ
+        t.transform.translation.x = twist.linear.x
+        t.transform.translation.y = twist.linear.y
+        t.transform.translation.z = 0.0
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
+        
+        self.tf_bc_odom.sendTransform(t)
 
         #Odometryタグ
         odom.header.stamp = self.c_t
