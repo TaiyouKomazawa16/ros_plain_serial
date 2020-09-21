@@ -25,6 +25,7 @@ from ros_plain_serial.srv import BoolCommand
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
 
+
 rospy.init_node('plain_serial_TF2')
 #接続先
 port = rospy.get_param('~port')
@@ -35,6 +36,8 @@ cuart = ps.PlainSerial(dev)
 cmds = ps.Bools()
 
 mutex = Lock()
+
+
 class CalcOdometry():
 
     def __init__(self):
@@ -89,7 +92,6 @@ class CalcOdometry():
         return odom
 
 
-
 def main():
     srv = rospy.Service('/plain_serial/sys_cmd', BoolCommand, got_command_cb)
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
@@ -116,6 +118,7 @@ def main():
             pub.publish(codom.calc_tf(res))
         rate.sleep()
 
+
 def got_request_cb(message):
     x = message.linear.x
     y = message.linear.y
@@ -133,6 +136,7 @@ def got_command_cb(srv_req):
     mutex.release()
 
     return True
+
 
 if __name__ == '__main__':
     main()

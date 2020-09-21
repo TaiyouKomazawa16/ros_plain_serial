@@ -21,6 +21,7 @@ from geometry_msgs.msg import Twist
 
 from ros_plain_serial.srv import BoolCommand
 
+
 rospy.init_node('plain_serial_Twist')
 #接続先
 port = rospy.get_param('~port')
@@ -32,23 +33,6 @@ cmds = ps.Bools()
 
 mutex = Lock()
 
-def got_request_cb(message):
-    x = message.linear.x
-    y = message.linear.y
-    thr = message.angular.z
-    mutex.acquire(1)
-    cuart.send(0, ps.PlaneTwist(x,y,thr))
-    mutex.release()
-
-def got_command_cb(srv_req):
-    rospy.loginfo("Get command.")
-    cmds.set(srv_req.cmd, srv_req.bit)
-    mutex.acquire(1)
-    for i in range(srv_req.retries):
-        cuart.send(1, cmds)
-    mutex.release()
-
-    return True
 
 def main():
     srv = rospy.Service('/plain_serial/sys_cmd', BoolCommand, got_command_cb)
@@ -69,6 +53,25 @@ def main():
             res.linear.y = result[1][1]
             res.angular.z = result[1][2]
             pub.publish(res)
+
+def got_request_cb(message):
+    x = message.linear.x
+    y = message.linear.y
+    thr = message.angular.z
+    mutex.acquire(1)
+    cuart.send(0, ps.PlaneTwist(x,y,thr))
+    mutex.release()
+
+def got_command_cb(srv_req):
+    rospy.loginfo("Get command.")
+    cmds.set(srv_req.cmd, srv_req.bit)
+    mutex.acquire(1)
+    for i in range(srv_req.retries):
+        cuart.send(1, cmds)
+    mutex.release()
+
+    return True
+
 
 if __name__ == '__main__':
     main()

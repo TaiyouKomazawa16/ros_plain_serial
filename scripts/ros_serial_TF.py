@@ -24,6 +24,7 @@ from ros_plain_serial.srv import BoolCommand
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
 
+
 rospy.init_node('plain_serial_TF')
 #接続先
 port = rospy.get_param('~port')
@@ -34,6 +35,8 @@ cuart = ps.PlainSerial(dev)
 cmds = ps.Bools()
 
 mutex = Lock()
+
+
 class CalcOdometry():
 
     def __init__(self):
@@ -72,7 +75,6 @@ class CalcOdometry():
         self.l_t = self.c_t
 
         return odom
-
 
 
 def main():
