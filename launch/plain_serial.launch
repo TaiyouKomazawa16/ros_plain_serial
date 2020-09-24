@@ -1,7 +1,6 @@
 <launch>
     <arg name="port" default="/dev/ttyUSB0"/>
     <node pkg="ros_plain_serial" name="ros_serial_TF2" type="ros_serial_TF2.py" required="true" output="screen">
-        <param name="port" value=$(arg port)/>
-        <remap from="'/plain_serial/cmd_vel" to="/cmd_vel"/>
+        <param name="port" value="$(arg port)"/>
     </node>
 </launch>
