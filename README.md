@@ -52,10 +52,6 @@ Arduino UnoでRosSerialを運用するのは難しいと感じたので軽量で
 
         現在の姿勢を、"ps_odom"ローカル座標の"base_link"に表現しています。
 
-- **"plain_serial_TF" ノード**
-
-    tf2への移行により廃止予定。
-
 ## 配信サービス
 
 - "BoolCommand.srv"
