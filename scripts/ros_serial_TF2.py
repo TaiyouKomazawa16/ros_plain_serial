@@ -45,14 +45,16 @@ class CalcOdometry():
         self.l_p = Twist()
         self.tf_bc_odom = tf2_ros.TransformBroadcaster()
 
-    def _get_vel(self, twist, c_t):
-        dt = self.c_t.to_sec() - self.l_t.to_sec()
+    def _get_vel(self, x, y, z, c_t):
+        dt = c_t.to_sec() - self.l_t.to_sec()
         diff = Twist()
-        diff.linear.x = (twist.linear.x - self.l_p.linear.x) / dt
-        diff.linear.y = (twist.linear.y - self.l_p.linear.y) / dt
-        diff.angular.z = (twist.angular.z - self.l_p.angular.z) / dt
-        self.l_p = twist
-
+        diff.linear.x = (x - self.l_p.linear.x) / dt
+        diff.linear.y = (y - self.l_p.linear.y) / dt
+        diff.angular.z = (z - self.l_p.angular.z) / dt
+        self.l_p.linear.x = x
+        self.l_p.linear.y = y
+        self.l_p.angular.z = z
+        rospy.loginfo(diff)        
         return diff
 
     def calc_tf(self, twist):
@@ -84,7 +86,7 @@ class CalcOdometry():
         odom.pose.pose.position = Point(twist.linear.x, twist.linear.y, 0)
         odom.pose.pose.orientation = Quaternion(*q)
         #現在の速度ベクトル
-        vel = self._get_vel(twist, self.c_t)
+        vel = self._get_vel(twist.linear.x, twist.linear.y, twist.angular.z, self.c_t)
         odom.twist.twist = vel
 
         self.l_t = self.c_t
