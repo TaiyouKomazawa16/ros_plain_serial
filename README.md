@@ -24,18 +24,6 @@ Arduino UnoでRosSerialを運用するのは難しいと感じたので軽量で
 
 ## 配信メッセージ
 
-- **"plain_serial_Twist" ノード** 
-
-    通信のチェック用です。基本的に使わないと思います。
-
-    - "/plain_serial/cmd_vel" : geometry_msgs.msg/Twist
-
-        送信する指示値[m/s,ras/s]。(x, y, yaw, のみに軸を制限)
-
-    - "/plain_serial/odometry" : geometry_msgs.msg/Twist
-
-        受信した現在のオドメトリ値[m,rad]。(x, y, yaw, のみに軸を制限)
-
 - **"plain_serial_TF2" ノード** 
 
     実用を想定したノードです。tf2を利用して姿勢計算を行います。
