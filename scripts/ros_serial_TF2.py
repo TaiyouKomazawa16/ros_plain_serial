@@ -53,8 +53,7 @@ class CalcOdometry():
         diff.angular.z = (z - self.l_p.angular.z) / dt
         self.l_p.linear.x = x
         self.l_p.linear.y = y
-        self.l_p.angular.z = z
-        rospy.loginfo(diff)        
+        self.l_p.angular.z = z        
         return diff
 
     def calc_tf(self, twist):
