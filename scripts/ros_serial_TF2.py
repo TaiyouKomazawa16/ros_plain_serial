@@ -97,8 +97,7 @@ def main():
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
     pub = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
 
-    res = Twist()
-    rate = rospy.Rate(50)   #50hz
+    ctrl_rate = rospy.Rate(200)   #200hz
 
     codom = CalcOdometry()
     cuart.add_frame(ps.PlaneTwist())
@@ -116,7 +115,7 @@ def main():
             res.angular.z = result[1][2]
 
             pub.publish(codom.calc_tf(res))
-        rate.sleep()
+        ctrl_rate.sleep()
 
 
 def got_request_cb(message):
@@ -133,6 +132,7 @@ def got_command_cb(srv_req):
     mutex.acquire(1)
     for i in range(srv_req.retries):
         cuart.send(1, cmds)
+        time.sleep(0.005)
     mutex.release()
 
     return True
