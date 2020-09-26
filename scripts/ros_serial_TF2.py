@@ -95,7 +95,7 @@ class CalcOdometry():
 
 def main():
     srv = rospy.Service('/plain_serial/sys_cmd', BoolCommand, got_command_cb)
-    sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb)
+    sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb, queue_size=10)
     pub = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
 
     ctrl_rate = rospy.Rate(200)   #200hz
