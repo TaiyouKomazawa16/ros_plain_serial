@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #encoding=utf-8
 #
-# File:     ros_serial_TF.py
+# File:     ros_serial_TF2.py
 # 
 # This file is distributed under the MIT license. See "LICENSE" for text.
 # 
