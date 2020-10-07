@@ -28,10 +28,10 @@ from nav_msgs.msg import Odometry
 
 rospy.init_node('plain_serial_TF2')
 #接続先
-port = rospy.get_param('~port')
+name = rospy.get_param('~device_name')
+port_name = rospy.get_param('~port_name', "ttyUSB")
 
-dev = serial.Serial(port, 9600, timeout=1.0)
-cuart = ps.PlainSerial(dev)
+cuart = ps.PlainSerial(name, tty_head=port_name)
 
 cmds = ps.Bools()
 

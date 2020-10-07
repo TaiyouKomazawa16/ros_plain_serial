@@ -15,6 +15,8 @@ import time
 from .msg.msg_base import StructMem
 
 class PlainSerial:
+    BAUD_RATE = 9600
+
     HEDER_LEN = 2
     FOOTER_LEN = 2
 
@@ -27,9 +29,8 @@ class PlainSerial:
     #StructMem objects
     _strs = []
 
-    def __init__(self, dev):
-        self.uart = dev
-        time.sleep(1)
+    def __init__(self, device_name, serach_range=5, tty_head="ttyUSB"):
+        self.uart = self._search_node(device_name, serach_range, tty_head)
 
     def _write(self, data):
         self.uart.write(str(data))
@@ -86,3 +87,22 @@ class PlainSerial:
                 return -1, 0
         else:
             return -1, 0
+
+    def _search_node(self, name, num, tty_head="ttyUSB", timeout=2.0):
+        for i in range(num):
+            file_path = ''.join(['/dev/', tty_head, str(i)])
+            try:
+                dev = serial.Serial(file_path, 9600, timeout=1.0, exclusive=True)
+                t = time.time()
+                while (time.time() - t) < timeout:
+                    got_name = dev.readline().decode()
+                    if got_name == ''.join([name, '\n']):
+                        print(file_path+" is "+name+"-PlainSerialNode.")
+                        for j in 'OK\n':
+                            dev.write(j.encode())
+                        return dev
+                print(file_path+" is not "+name+"-PlainSerialNode.")
+            except:
+                print(file_path+" is not found or connected.")
+        raise Exception("Your PlainSerialNode is not found!")
+
