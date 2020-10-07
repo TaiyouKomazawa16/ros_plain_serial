@@ -8,3 +8,4 @@ from .msg.msg_base import *
 from .msg.plane_twist import *
 from .msg.type32 import *
 from .msg.bools import *
+from .msg.quaternion import *
