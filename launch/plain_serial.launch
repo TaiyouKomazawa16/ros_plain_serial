@@ -4,9 +4,12 @@
     <node pkg="ros_plain_serial" name="ros_serial_TF2" type="ros_serial_TF2.py" required="true" output="screen">
         <param name="device_name" value="$(arg dev_name)"/>
         <param name="port_name" value="ttyUSB"/>
+        <remap from="/plain_serial/cmd_vel" to="/cmd_vel"/>
+        <remap from="/plain_serial/odometry" to="/odometry"/>
     </node>
     <node pkg="ros_plain_serial" name="ros_imu_converter" type="ros_imu_converter.py" required="true" output="screen">
         <param name="device_name" value="$(arg imu_name)"/>
         <param name="port_name" value="ttyUSB"/>
+        <remap from="/plain_serial/imu" to="/imu/data"/>
     </node>
 </launch>
