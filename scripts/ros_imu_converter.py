@@ -82,5 +82,7 @@ def main():
             imu_pub.publish(imu_msg)
         ctrl_rate.sleep()
 
+    cuart.close()
+
 if __name__ == '__main__':
     main()

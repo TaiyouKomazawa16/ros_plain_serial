@@ -40,6 +40,9 @@ class PlainSerial:
         result = self.uart.read(size)
         return sum(ord(i) for i in result), result
 
+    def close(self):
+        self.uart.close()
+
     def add_frame(self, message):
         if issubclass(type(message), StructMem) == False:
             return None #error!
@@ -88,7 +91,7 @@ class PlainSerial:
         else:
             return -1, 0
 
-    def _search_node(self, name, num, tty_head="ttyUSB", timeout=2.0):
+    def _search_node(self, name, num, tty_head="ttyUSB", timeout=3.0):
         for i in range(num):
             file_path = ''.join(['/dev/', tty_head, str(i)])
             try:

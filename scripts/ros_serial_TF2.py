@@ -118,6 +118,8 @@ def main():
             pub.publish(codom.calc_tf(res))
         ctrl_rate.sleep()
 
+    cuart.close()
+
 
 def got_request_cb(message):
     x = message.linear.x
