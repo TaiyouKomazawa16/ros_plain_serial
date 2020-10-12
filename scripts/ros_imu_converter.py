@@ -37,7 +37,7 @@ def main():
 
     imu_pub = rospy.Publisher('/plain_serial/imu', Imu, queue_size=10)
 
-    ctrl_rate = rospy.Rate(200)   #200hz
+    ctrl_rate = rospy.Rate(35)   #35hz
 
     cuart.add_frame(ps.Quaternion())
 
