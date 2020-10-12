@@ -91,7 +91,7 @@ class PlainSerial:
         else:
             return -1, 0
 
-    def _search_node(self, name, num, tty_head="ttyUSB", timeout=3.0):
+    def _search_node(self, name, num, tty_head="ttyUSB", timeout=5.0):
         for i in range(num):
             file_path = ''.join(['/dev/', tty_head, str(i)])
             try:
