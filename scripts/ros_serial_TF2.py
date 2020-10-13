@@ -42,33 +42,30 @@ class CalcOdometry():
 
     def __init__(self):
         self.l_t = rospy.Time.now()
-        self.l_p = Twist()
         self.tf_bc_odom = tf2_ros.TransformBroadcaster()
+        self.x = 0.0
+        self.y = 0.0
+        self.lyaw = 0.0
 
-    def _get_vel(self, x, y, z, c_t):
-        dt = c_t.to_sec() - self.l_t.to_sec()
-        diff = Twist()
-        diff.linear.x = (x - self.l_p.linear.x) / dt
-        diff.linear.y = (y - self.l_p.linear.y) / dt
-        diff.angular.z = (z - self.l_p.angular.z) / dt
-        self.l_p.linear.x = x
-        self.l_p.linear.y = y
-        self.l_p.angular.z = z        
-        return diff
-
-    def calc_tf(self, twist):
+    def calc_tf(self, res):
         self.c_t = rospy.Time.now()
-        q = tf_conversions.transformations.quaternion_from_euler(0,0, twist.angular.z)
+        q = tf_conversions.transformations.quaternion_from_euler(0,0, res.angular.z)
         t = TransformStamped()
         odom = Odometry()
+
+        dt = self.c_t.to_sec() - self.l_t.to_sec()
+        self.x += res.linear.x * dt
+        self.y += res.linear.y * dt
+        vyaw = (res.angular.z - self.lyaw) / dt
+        self.lyaw = res.angular.z
 
         #tf2タグ
         t.header.stamp = self.c_t
         t.header.frame_id =     "ps_odom"
         t.child_frame_id =      "base_link"
         #現在のオドメトリ
-        t.transform.translation.x = twist.linear.x
-        t.transform.translation.y = twist.linear.y
+        t.transform.translation.x = self.x
+        t.transform.translation.y = self.y
         t.transform.translation.z = 0.0
         t.transform.rotation.x = q[0]
         t.transform.rotation.y = q[1]
@@ -82,11 +79,12 @@ class CalcOdometry():
         odom.header.frame_id =  "ps_odom"
         odom.child_frame_id =   "base_link"
         #現在のオドメトリ
-        odom.pose.pose.position = Point(twist.linear.x, twist.linear.y, 0)
+        odom.pose.pose.position = Point(self.x, self.y, 0)
         odom.pose.pose.orientation = Quaternion(*q)
         #現在の速度ベクトル
-        vel = self._get_vel(twist.linear.x, twist.linear.y, twist.angular.z, self.c_t)
-        odom.twist.twist = vel
+        odom.twist.twist.linear.x = res.linear.x
+        odom.twist.twist.linear.y = res.linear.y
+        odom.twist.twist.angular.z = vyaw
 
         self.l_t = self.c_t
 
