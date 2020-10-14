@@ -46,12 +46,26 @@ class CalcOdometry():
         self.x = 0.0
         self.y = 0.0
         self.lyaw = 0.0
+        self.odom = Odometry()
+
+        #covariance matrix
+        #   0   1   2   3   4   5
+        #   6   7   8   9   10  11
+        #   12  13  14  15  16  17
+        #   18  19  20  21  22  23
+        #   24  25  26  27  28  29
+        #   30  31  32  33  34  35
+        self.odom.pose.covariance[0] = 0.08     #pose covariance xx
+        self.odom.pose.covariance[7] = 0.1      #pose covariance yy
+        self.odom.pose.covariance[35] = 1.00    #pose covariance yawyaw
+        self.odom.twist.covariance[0] = 0.05    #vel covariance xx
+        self.odom.twist.covariance[7] = 0.08    #vel covariance yy
+        self.odom.twist.covariance[35] = 1.00   #vel covariance yawyaw
 
     def calc_tf(self, res):
         self.c_t = rospy.Time.now()
         q = tf_conversions.transformations.quaternion_from_euler(0,0, res.angular.z)
         t = TransformStamped()
-        odom = Odometry()
 
         dt = self.c_t.to_sec() - self.l_t.to_sec()
         self.x += res.linear.x * dt
@@ -75,20 +89,20 @@ class CalcOdometry():
         self.tf_bc_odom.sendTransform(t)
 
         #Odometryタグ
-        odom.header.stamp = self.c_t
-        odom.header.frame_id =  "ps_odom"
-        odom.child_frame_id =   "base_link"
+        self.odom.header.stamp = self.c_t
+        self.odom.header.frame_id =  "ps_odom"
+        self.odom.child_frame_id =   "base_link"
         #現在のオドメトリ
-        odom.pose.pose.position = Point(self.x, self.y, 0)
-        odom.pose.pose.orientation = Quaternion(*q)
+        self.odom.pose.pose.position = Point(self.x, self.y, 0)
+        self.odom.pose.pose.orientation = Quaternion(*q)
         #現在の速度ベクトル
-        odom.twist.twist.linear.x = res.linear.x
-        odom.twist.twist.linear.y = res.linear.y
-        odom.twist.twist.angular.z = vyaw
+        self.odom.twist.twist.linear.x = res.linear.x
+        self.odom.twist.twist.linear.y = res.linear.y
+        self.odom.twist.twist.angular.z = vyaw
 
         self.l_t = self.c_t
 
-        return odom
+        return self.odom
 
 
 def main():
