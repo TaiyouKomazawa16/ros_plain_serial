@@ -91,21 +91,21 @@ class PlainSerial:
         else:
             return -1, 0
 
-    def _search_node(self, name, num, tty_head="ttyUSB", timeout=5.0):
-        for i in range(num):
-            file_path = ''.join(['/dev/', tty_head, str(i)])
-            try:
-                dev = serial.Serial(file_path, 9600, timeout=1.0, exclusive=True)
-                t = time.time()
-                while (time.time() - t) < timeout:
-                    got_name = dev.readline().decode()
-                    if got_name == ''.join([name, '\n']):
-                        print(file_path+" is "+name+"-PlainSerialNode.")
-                        for j in 'OK\n':
-                            dev.write(j.encode())
-                        return dev
-                print(file_path+" is not "+name+"-PlainSerialNode.")
-            except:
-                print(file_path+" is not found or connected.")
+    def _search_node(self, name, num, tty_head="ttyUSB", timeout=3.0, retries=3):
+        for i in range(retries):
+            for j in range(num):
+                file_path = ''.join(['/dev/', tty_head, str(j)])
+                try:
+                    dev = serial.Serial(file_path, 9600, timeout=1.0, exclusive=True)
+                    t = time.time()
+                    while (time.time() - t) < timeout:
+                        got_name = dev.readline().decode()
+                        if got_name == ''.join([name, '\n']):
+                            print(file_path+" is "+name+"-PlainSerialNode.")
+                            for w in 'OK\n':
+                                dev.write(w.encode())
+                            return dev
+                except:
+                    pass
+            time.sleep(0.05)
         raise Exception("Your PlainSerialNode is not found!")
-
