@@ -75,7 +75,7 @@ class CalcOdometry():
 
         #tf2タグ
         t.header.stamp = self.c_t
-        t.header.frame_id =     "ps_odom"
+        t.header.frame_id =     "odom"
         t.child_frame_id =      "base_link"
         #現在のオドメトリ
         t.transform.translation.x = self.x
@@ -90,7 +90,7 @@ class CalcOdometry():
 
         #Odometryタグ
         self.odom.header.stamp = self.c_t
-        self.odom.header.frame_id =  "ps_odom"
+        self.odom.header.frame_id =  "odom"
         self.odom.child_frame_id =   "base_link"
         #現在のオドメトリ
         self.odom.pose.pose.position = Point(self.x, self.y, 0)
