@@ -69,7 +69,9 @@ class PlainSerial:
             id = ord(tmp[1][0])
             msg_id = ord(tmp[1][1])
             check_sum += tmp[0]
-            if(msg_id != self._strs[id].msg_id()):
+            if id >= self.STRUCT_MAX_NUM:
+                return -1, 0
+            if msg_id != self._strs[id].msg_id():
                 return -1, 0
             
             tmp = self._read(self._strs[id].size())
