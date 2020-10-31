@@ -9,3 +9,4 @@ from .msg.plane_twist import *
 from .msg.type32 import *
 from .msg.bools import *
 from .msg.quaternion import *
+from .msg.imu_msg import *
