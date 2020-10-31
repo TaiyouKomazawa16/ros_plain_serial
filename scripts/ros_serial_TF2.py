@@ -55,12 +55,12 @@ class CalcOdometry():
         #   18  19  20  21  22  23
         #   24  25  26  27  28  29
         #   30  31  32  33  34  35
-        self.odom.pose.covariance[0] = 0.08     #pose covariance xx
-        self.odom.pose.covariance[7] = 0.1      #pose covariance yy
-        self.odom.pose.covariance[35] = 1.00    #pose covariance yawyaw
-        self.odom.twist.covariance[0] = 0.05    #vel covariance xx
-        self.odom.twist.covariance[7] = 0.08    #vel covariance yy
-        self.odom.twist.covariance[35] = 1.00   #vel covariance yawyaw
+        self.odom.pose.covariance[0] = 0.003    #pose covariance xx
+        self.odom.pose.covariance[7] = 0.003    #pose covariance yy
+        self.odom.pose.covariance[35] = 0.10    #pose covariance yawyaw
+        self.odom.twist.covariance[0] = 0.003   #vel covariance xx
+        self.odom.twist.covariance[7] = 0.003   #vel covariance yy
+        self.odom.twist.covariance[35] = 0.50   #vel covariance yawyaw
 
     def calc_tf(self, res):
         self.c_t = rospy.Time.now()
