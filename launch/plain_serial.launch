@@ -1,15 +1,19 @@
 <launch>
     <arg name="dev_name" default="Movement"/>
+    <arg name="dev_port" default="ttyUSB"/>
     <arg name="imu_name" default="Imu"/>
+    <arg name="imu_port" default="ttyUSB"/>
+
     <node pkg="ros_plain_serial" name="ros_serial_TF2" type="ros_serial_TF2.py" required="true" output="screen">
         <param name="device_name" value="$(arg dev_name)"/>
-        <param name="port_name" value="ttyUSB"/>
+        <param name="port_name" value="$(arg dev_port)"/>
         <remap from="/plain_serial/cmd_vel" to="/cmd_vel"/>
         <remap from="/plain_serial/odometry" to="/odometry"/>
+        <remap from="/plain_serial/wheels_vel" to="/wheels_vel"/>
     </node>
     <node pkg="ros_plain_serial" name="ros_imu_converter" type="ros_imu_converter.py" required="true" output="screen">
         <param name="device_name" value="$(arg imu_name)"/>
-        <param name="port_name" value="ttyUSB"/>
+        <param name="port_name" value="$(arg imu_port)"/>
         <remap from="/plain_serial/imu" to="/imu/data"/>
     </node>
 </launch>

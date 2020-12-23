@@ -19,9 +19,11 @@ import tf_conversions
 import tf2_ros
 
 import plain_serial as ps
+import wheels_msg
 
 from ros_plain_serial.srv import BoolCommand
 
+from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Twist, Quaternion, TransformStamped, Point
 from nav_msgs.msg import Odometry
 
@@ -108,27 +110,41 @@ class CalcOdometry():
 def main():
     srv = rospy.Service('/plain_serial/sys_cmd', BoolCommand, got_command_cb)
     sub = rospy.Subscriber('/plain_serial/cmd_vel', Twist, got_request_cb, queue_size=10)
-    pub = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
+    pub_odom = rospy.Publisher('/plain_serial/odometry', Odometry, queue_size=10)
+    pub_wheel = rospy.Publisher('/plain_serial/wheels_vel', Float32MultiArray, queue_size=10)
 
-    ctrl_rate = rospy.Rate(50)   #50hz
+
+    ctrl_rate = rospy.Rate(60)   #60hz
 
     codom = CalcOdometry()
     cuart.add_frame(ps.PlaneTwist())
     cuart.add_frame(cmds)
+    cuart.add_frame(wheels_msg.WheelsMsg())
 
-    res = Twist()
+    odom = Twist()
+    wheels_vel = Float32MultiArray()
 
     rospy.loginfo("Ready..")
 
     while not rospy.is_shutdown():
         result = cuart.recv()
         if result[0] == 0:
-            res.linear.x = result[1][0]
-            res.linear.y = result[1][1]
-            res.angular.z = result[1][2]
-
-            pub.publish(codom.calc_tf(res))
+            odom.linear.x = result[1][0]
+            odom.linear.y = result[1][1]
+            odom.angular.z = result[1][2]
+            pub_odom.publish(codom.calc_tf(odom))
+            
+        elif result[0] == 2:
+            wheels_vel.data = result[1]
+            pub_wheel.publish(wheels_vel)
         ctrl_rate.sleep()
+
+    cmds.set(True, 1)
+    mutex.acquire(1)
+    for i in range(4):
+        cuart.send(1, cmds)
+        time.sleep(0.005)
+    mutex.release()
 
     cuart.close()
 
