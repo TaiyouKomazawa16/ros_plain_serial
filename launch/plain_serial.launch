@@ -1,6 +1,6 @@
 <launch>
     <arg name="dev_name" default="Movement"/>
-    <arg name="dev_port" default="ttyUSB"/>
+    <arg name="dev_port" default="ttyACM"/>
     <arg name="imu_name" default="Imu"/>
     <arg name="imu_port" default="ttyUSB"/>
 

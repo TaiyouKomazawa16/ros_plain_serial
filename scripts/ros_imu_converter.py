@@ -13,6 +13,8 @@
 import sys,math
 import rospy
 
+import numpy as np
+
 import serial
 
 import tf_conversions
@@ -59,6 +61,10 @@ def main():
     pitch_roll_covariance = pitch_roll_stdev_ * pitch_roll_stdev_
     yaw_covariance = yaw_stdev_ * yaw_stdev_
 
+    SAMPLE_NUM = 40
+    data_head = 0
+    rot_array = np.zeros([SAMPLE_NUM, 3])
+    acc_array = np.zeros([SAMPLE_NUM, 3])
 
     imu_msg.header.frame_id = imu_frame_id
 
@@ -92,6 +98,20 @@ def main():
             #imu_msg.angular_velocity.x = result[1][7]
             #imu_msg.angular_velocity.y = result[1][8]
             #imu_msg.angular_velocity.z = result[1][9]
+
+            e = tf_conversions.transformations.euler_from_quaternion((  result[1][0], 
+                                                            result[1][1], 
+                                                            result[1][2], 
+                                                            result[1][3]))
+            rot_array[data_head] = [e[0], e[1], e[2]]
+            rot_cov = np.cov(rot_array, rowvar=False, bias=True)
+            imu_msg.orientation_covariance = rot_cov.reshape((1, 9))[0]
+
+            acc_array[data_head] = [imu_msg.linear_acceleration.x, 
+                                    imu_msg.linear_acceleration.y, 
+                                    imu_msg.linear_acceleration.z]
+            acc_cov = np.cov(acc_array, rowvar=False, bias=True)
+            imu_msg.linear_acceleration_covariance = acc_cov.reshape((1, 9))[0]
 
             imu_msg.header.stamp = sensor_data_time
             imu_pub.publish(imu_msg)

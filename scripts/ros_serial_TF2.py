@@ -11,6 +11,7 @@
 import sys,math
 import rospy
 from threading import Lock
+import numpy as np
 
 import serial
 import time
@@ -41,6 +42,7 @@ mutex = Lock()
 
 
 class CalcOdometry():
+    SAMPLE_NUM = 40
 
     def __init__(self):
         self.l_t = rospy.Time.now()
@@ -49,6 +51,11 @@ class CalcOdometry():
         self.y = 0.0
         self.lyaw = 0.0
         self.odom = Odometry()
+
+        self.data_head = 0
+        self.pose_array = np.zeros([self.SAMPLE_NUM, 6])
+        self.vel_array = np.zeros([self.SAMPLE_NUM, 6])
+
 
         #covariance matrix
         #   0   1   2   3   4   5
@@ -103,6 +110,16 @@ class CalcOdometry():
         self.odom.twist.twist.angular.z = vyaw
 
         self.l_t = self.c_t
+
+        self.pose_array[self.data_head] = [self.x, self.y, 0, 0, 0, res.angular.z]
+        pose_cov = np.cov(self.pose_array, rowvar=False, bias=True)
+        self.odom.pose.covariance = pose_cov.reshape((1, 36))[0]
+
+        self.vel_array[self.data_head] = [res.linear.x, res.linear.y, 0, 0, 0, vyaw]
+        vel_cov = np.cov(self.vel_array, rowvar=False, bias=True)
+        self.odom.twist.covariance = vel_cov.reshape((1, 36))[0]
+
+        self.data_head += 1 if self.data_head < (self.SAMPLE_NUM-1) else -self.data_head
 
         return self.odom
 
